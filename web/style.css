@@ -1,0 +1,761 @@
+/* Global variables & Dark Theme System */
+:root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121e;
+    
+    --card-bg: rgba(20, 20, 32, 0.55);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-hover-border: rgba(255, 255, 255, 0.15);
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    
+    /* State colors with HSL gradients */
+    --color-connected: #00f2fe;
+    --color-connected-glow: rgba(0, 242, 254, 0.4);
+    
+    --color-disconnected: #ff0844;
+    --color-disconnected-glow: rgba(255, 8, 68, 0.4);
+    
+    --color-connecting: #f6d365;
+    --color-connecting-glow: rgba(246, 211, 101, 0.4);
+    
+    --color-error: #ef4444;
+    --color-error-glow: rgba(239, 68, 68, 0.4);
+
+    --transition-speed: 0.3s;
+    --border-radius: 16px;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    position: relative;
+    padding: 20px;
+}
+
+/* Background animated glow */
+.glow-bg {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(79, 172, 254, 0.15) 0%, rgba(0, 242, 254, 0.02) 60%, transparent 100%);
+    z-index: -1;
+    pointer-events: none;
+    filter: blur(80px);
+    animation: pulseGlow 15s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        width: 600px;
+        height: 600px;
+        opacity: 0.8;
+    }
+    50% {
+        width: 800px;
+        height: 800px;
+        opacity: 1.2;
+    }
+}
+
+/* Main Container */
+.app-container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    z-index: 1;
+}
+
+/* Header styling */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    color: var(--color-connected);
+    filter: drop-shadow(0 0 8px var(--color-connected-glow));
+}
+
+.logo-area h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.logo-area h1 span {
+    color: var(--color-connected);
+    font-weight: 300;
+}
+
+.system-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 6px 14px;
+    border-radius: 30px;
+    border: 1px solid var(--card-border);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Status dots */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.disconnected {
+    background-color: var(--color-disconnected);
+    box-shadow: 0 0 8px var(--color-disconnected-glow);
+}
+
+.status-dot.connecting {
+    background-color: var(--color-connecting);
+    box-shadow: 0 0 8px var(--color-connecting-glow);
+    animation: blink 1s infinite alternate;
+}
+
+.status-dot.connected {
+    background-color: var(--color-connected);
+    box-shadow: 0 0 8px var(--color-connected-glow);
+}
+
+.status-dot.error {
+    background-color: var(--color-error);
+    box-shadow: 0 0 8px var(--color-error-glow);
+}
+
+@keyframes blink {
+    from { opacity: 0.3; }
+    to { opacity: 1; }
+}
+
+/* Grid Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Glass Cards style */
+.glass-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.glass-card:hover {
+    border-color: var(--card-hover-border);
+}
+
+/* Panel Common Settings */
+.panel {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 12px;
+}
+
+.panel-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary);
+}
+
+.panel-header h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+/* Forms design */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+.select-wrapper {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+select {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+    padding: 12px 16px;
+    border-radius: 8px;
+    outline: none;
+    font-size: 0.95rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px;
+    padding-right: 40px;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+select:focus, select:hover {
+    border-color: var(--color-connected-glow);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+select option {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Input boxes styling */
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+    padding: 12px 16px 12px 42px;
+    border-radius: 8px;
+    outline: none;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    border-color: var(--color-connected);
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.1);
+}
+
+/* Toggle password eye button */
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+}
+
+.toggle-password:hover {
+    color: var(--text-secondary);
+}
+
+.eye-icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Custom Checkbox */
+.form-checkbox {
+    margin-bottom: 24px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 28px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    left: 0;
+    height: 18px;
+    width: 18px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+    border-color: var(--text-secondary);
+}
+
+.checkbox-container input:checked ~ .checkmark {
+    background-color: var(--color-connected);
+    border-color: var(--color-connected);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.checkbox-container .checkmark:after {
+    left: 6px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
+    border: solid black;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-container.inline {
+    padding-left: 24px;
+}
+
+.checkbox-container.inline .checkmark {
+    height: 16px;
+    width: 16px;
+}
+
+.checkbox-container.inline input:checked ~ .checkmark:after {
+    left: 5px;
+    top: 1px;
+    width: 3px;
+    height: 7px;
+}
+
+/* Buttons style */
+.btn-icon {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--text-secondary);
+}
+
+.btn-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    flex: 1;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-icon-svg {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-connected) 0%, #4facfe 100%);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.35);
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--color-disconnected) 0%, #ff0844 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 8, 68, 0.15);
+}
+
+.btn-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 8, 68, 0.3);
+}
+
+.btn-danger:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Right side layouts */
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 600px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.info-card {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.card-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+}
+
+/* Glowing ring connection indicator */
+.state-display {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.state-glowing-ring {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.state-glowing-ring:before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+}
+
+.state-glowing-ring.disconnected:before {
+    border-color: var(--color-disconnected);
+    box-shadow: 0 0 12px var(--color-disconnected-glow);
+    opacity: 0.6;
+}
+
+.state-glowing-ring.connecting:before {
+    border-color: var(--color-connecting);
+    box-shadow: 0 0 12px var(--color-connecting-glow);
+    animation: rotateRing 2s linear infinite;
+}
+
+.state-glowing-ring.connected:before {
+    border-color: var(--color-connected);
+    box-shadow: 0 0 12px var(--color-connected-glow);
+    animation: breatheRing 3s infinite ease-in-out;
+}
+
+.state-glowing-ring.error:before {
+    border-color: var(--color-error);
+    box-shadow: 0 0 12px var(--color-error-glow);
+}
+
+.state-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+}
+
+.state-dot.disconnected { background: var(--color-disconnected); }
+.state-dot.connecting { background: var(--color-connecting); }
+.state-dot.connected { background: var(--color-connected); }
+.state-dot.error { background: var(--color-error); }
+
+.state-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.state-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.state-sub {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+@keyframes rotateRing {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes breatheRing {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+}
+
+/* Uptime / Stat lists */
+.stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    padding-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.stat-label {
+    color: var(--text-muted);
+}
+
+.stat-val {
+    font-weight: 600;
+}
+
+.stat-val.copyable {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 4px;
+    transition: color 0.2s;
+}
+
+.stat-val.copyable:hover {
+    color: var(--color-connected);
+}
+
+/* Log monitor console */
+.log-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.log-header {
+    justify-content: space-between;
+    flex-direction: row !important;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.btn-small {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-small:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.log-console-wrapper {
+    flex: 1;
+    background: #040406;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow: hidden;
+    display: flex;
+    min-height: 250px;
+    max-height: 400px;
+}
+
+.log-console {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #a7f3d0; /* Soft emerald console font color */
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    padding-right: 8px;
+}
+
+/* Custom Scrollbar for console and dropdown */
+.log-console::-webkit-scrollbar, select::-webkit-scrollbar {
+    width: 6px;
+}
+
+.log-console::-webkit-scrollbar-track, select::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.log-console::-webkit-scrollbar-thumb, select::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.log-console::-webkit-scrollbar-thumb:hover, select::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Notification Toast */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: rgba(18, 18, 30, 0.95);
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 999;
+}
+
+.toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
