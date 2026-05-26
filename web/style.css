@@ -242,12 +242,19 @@ body {
     width: 100%;
 }
 
-select {
+.select-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
     flex: 1;
+}
+
+select {
+    width: 100%;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--card-border);
     color: var(--text-primary);
-    padding: 12px 16px;
+    padding: 12px 16px 12px 42px;
     border-radius: 8px;
     outline: none;
     font-size: 0.95rem;
@@ -284,6 +291,13 @@ select option {
     height: 18px;
     color: var(--text-muted);
     pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+input:disabled ~ .input-icon,
+select:disabled ~ .input-icon {
+    opacity: 0.35;
 }
 
 input[type="text"], input[type="password"] {
@@ -412,17 +426,33 @@ input[type="text"]:focus, input[type="password"]:focus {
     border: 1px solid var(--card-border);
     border-radius: 8px;
     padding: 12px;
-    color: var(--text-primary);
+    color: var(--text-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-icon:hover {
+    color: var(--text-primary);
     background: rgba(255, 255, 255, 0.08);
     border-color: var(--text-secondary);
+}
+
+#refresh-configs:hover,
+#btn-save-account:hover {
+    background: rgba(0, 242, 254, 0.08);
+    border-color: var(--color-connected);
+    color: var(--color-connected);
+    box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
+}
+
+#btn-delete-account:hover {
+    background: rgba(255, 8, 68, 0.08);
+    border-color: var(--color-disconnected);
+    color: var(--color-disconnected);
+    box-shadow: 0 0 12px rgba(255, 8, 68, 0.25);
 }
 
 .btn-icon svg {
@@ -625,10 +655,11 @@ input[type="text"]:focus, input[type="password"]:focus {
 .stat-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     padding-bottom: 8px;
     font-size: 0.9rem;
+    gap: 16px;
 }
 
 .stat-item:last-child {
@@ -638,10 +669,13 @@ input[type="text"]:focus, input[type="password"]:focus {
 
 .stat-label {
     color: var(--text-muted);
+    flex-shrink: 0;
 }
 
 .stat-val {
     font-weight: 600;
+    text-align: right;
+    word-break: break-word;
 }
 
 .stat-val.copyable {

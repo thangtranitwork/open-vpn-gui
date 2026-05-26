@@ -94,7 +94,7 @@ http://127.0.0.1:5001
 | :--- | :--- | :--- |
 | `/` | `GET` | Serves the main UI page |
 | `/api/configs` | `GET` | Scans and lists available `.ovpn` configuration profiles |
-| `/api/status` | `GET` | Returns active VPN connection stats & status details |
+| `/api/status` | `GET` [README.md](README.md)| Returns active VPN connection stats & status details |
 | `/api/connect` | `POST` | Triggers connection to a selected profile |
 | `/api/disconnect` | `POST` | Gracefully terminates the running OpenVPN instance |
 | `/api/logs` | `GET` | Streams live OpenVPN stdout logs via Server-Sent Events (SSE) |

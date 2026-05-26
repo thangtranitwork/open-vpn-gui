@@ -1,4 +1,5 @@
 // DOM Elements
+const configDirInput = document.getElementById('config-dir');
 const configSelect = document.getElementById('config-select');
 const refreshConfigsBtn = document.getElementById('refresh-configs');
 const accountSelect = document.getElementById('account-select');
@@ -39,6 +40,10 @@ let savedAccounts = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Load saved config directory path from localStorage
+    const savedConfigDir = localStorage.getItem('config_dir') || '';
+    configDirInput.value = savedConfigDir;
+
     fetchConfigs();
     fetchAccounts();
     fetchStatus();
@@ -50,6 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Event Listeners
 refreshConfigsBtn.addEventListener('click', fetchConfigs);
+configDirInput.addEventListener('change', fetchConfigs);
+configDirInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        fetchConfigs();
+    }
+});
 togglePasswordBtn.addEventListener('click', togglePasswordVisibility);
 btnConnect.addEventListener('click', connectVPN);
 btnDisconnect.addEventListener('click', disconnectVPN);
@@ -88,8 +99,16 @@ async function fetchConfigs() {
     try {
         refreshConfigsBtn.disabled = true;
         refreshConfigsBtn.style.animation = 'rotateRing 1s linear infinite';
-        const response = await fetch('/api/configs');
-        if (!response.ok) throw new Error('Failed to load configs');
+        
+        const configDir = configDirInput.value.trim();
+        localStorage.setItem('config_dir', configDir);
+        
+        const url = configDir ? `/api/configs?custom_dir=${encodeURIComponent(configDir)}` : '/api/configs';
+        const response = await fetch(url);
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error || 'Failed to load configs');
+        }
         
         savedConfigs = await response.json();
         
@@ -101,7 +120,7 @@ async function fetchConfigs() {
         
         if (savedConfigs.length === 0) {
             configSelect.innerHTML = '<option value="" disabled selected>No .ovpn files found</option>';
-            showToast('No .ovpn files found in home or current directory.');
+            showToast(configDir ? `No .ovpn files found in directory: ${configDir}` : 'No .ovpn files found in home or current directory.');
         } else {
             savedConfigs.forEach(cfg => {
                 const opt = document.createElement('option');
@@ -199,6 +218,7 @@ function updateUIState(state) {
         btnConnect.disabled = true;
         btnDisconnect.disabled = false;
         configSelect.disabled = true;
+        configDirInput.disabled = true;
         usernameInput.disabled = true;
         passwordInput.disabled = true;
         saveCredsCheckbox.disabled = true;
@@ -224,6 +244,7 @@ function updateUIState(state) {
         btnConnect.disabled = true;
         btnDisconnect.disabled = false; // Allow canceling connection
         configSelect.disabled = true;
+        configDirInput.disabled = true;
         usernameInput.disabled = true;
         passwordInput.disabled = true;
         saveCredsCheckbox.disabled = true;
@@ -236,6 +257,7 @@ function updateUIState(state) {
         btnConnect.disabled = true;
         btnDisconnect.disabled = true;
         configSelect.disabled = true;
+        configDirInput.disabled = true;
         usernameInput.disabled = true;
         passwordInput.disabled = true;
         saveCredsCheckbox.disabled = true;
@@ -250,6 +272,7 @@ function updateUIState(state) {
         btnConnect.disabled = !configSelect.value;
         btnDisconnect.disabled = true;
         configSelect.disabled = false;
+        configDirInput.disabled = false;
         usernameInput.disabled = false;
         passwordInput.disabled = false;
         saveCredsCheckbox.disabled = false;

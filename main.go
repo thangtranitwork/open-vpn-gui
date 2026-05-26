@@ -93,7 +93,7 @@ func main() {
 	http.HandleFunc("/", serveIndex)
 	http.HandleFunc("/static/style.css", serveCSS)
 	http.HandleFunc("/static/app.js", serveJS)
-	
+
 	http.HandleFunc("/api/configs", handleConfigs)
 	http.HandleFunc("/api/status", handleStatus)
 	http.HandleFunc("/api/connect", handleConnect)
@@ -104,7 +104,7 @@ func main() {
 
 	log.Printf("Starting OpenVPN GUI Web Server on http://127.0.0.1%s", defaultPort)
 	log.Printf("Please open this link in your browser to manage your VPN connection.")
-	
+
 	// Bind only to localhost for security
 	err := http.ListenAndServe("127.0.0.1"+defaultPort, nil)
 	if err != nil {
@@ -156,7 +156,9 @@ func handleConfigs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	configs, err := scanOVPNConfigs()
+	customDir := r.URL.Query().Get("custom_dir")
+
+	configs, err := scanOVPNConfigs(customDir)
 	if err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -263,41 +265,79 @@ func handleLogs(w http.ResponseWriter, r *http.Request) {
 
 // --- VPN Helper Functions ---
 
-func scanOVPNConfigs() ([]ConfigItem, error) {
+func scanOVPNConfigs(customDir string) ([]ConfigItem, error) {
 	var configs []ConfigItem
 
-	// 1. Scan current working directory
-	files, _ := filepath.Glob("*.ovpn")
-	for _, f := range files {
-		abs, err := filepath.Abs(f)
-		if err == nil {
-			configs = append(configs, ConfigItem{Name: filepath.Base(f), Path: abs})
+	if customDir != "" {
+		dir := customDir
+		if strings.HasPrefix(dir, "~") {
+			var homeDir string
+			if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
+				homeDir = filepath.Join("/home", sudoUser)
+			} else {
+				var err error
+				homeDir, err = os.UserHomeDir()
+				if err == nil {
+					dir = filepath.Join(homeDir, dir[1:])
+				}
+			}
 		}
-	}
 
-	// Get actual home directory (resolving SUDO_USER if run under sudo)
-	var homeDir string
-	if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
-		homeDir = filepath.Join("/home", sudoUser)
-	} else {
-		var err error
-		homeDir, err = os.UserHomeDir()
+		info, err := os.Stat(dir)
 		if err != nil {
-			homeDir = ""
+			if os.IsNotExist(err) {
+				return nil, fmt.Errorf("Directory does not exist: %s", customDir)
+			}
+			return nil, fmt.Errorf("Error accessing directory: %v", err)
 		}
-	}
-
-	if homeDir != "" {
-		// 2. Scan user's home directory
-		homeFiles, _ := filepath.Glob(filepath.Join(homeDir, "*.ovpn"))
-		for _, f := range homeFiles {
-			configs = append(configs, ConfigItem{Name: filepath.Base(f), Path: f})
+		if !info.IsDir() {
+			return nil, fmt.Errorf("Path is not a directory: %s", customDir)
 		}
 
-		// 3. Scan user's Downloads directory
-		downloadFiles, _ := filepath.Glob(filepath.Join(homeDir, "Downloads", "*.ovpn"))
-		for _, f := range downloadFiles {
-			configs = append(configs, ConfigItem{Name: filepath.Base(f), Path: f})
+		files, err := filepath.Glob(filepath.Join(dir, "*.ovpn"))
+		if err != nil {
+			return nil, fmt.Errorf("Error scanning directory: %v", err)
+		}
+		for _, f := range files {
+			abs, err := filepath.Abs(f)
+			if err == nil {
+				configs = append(configs, ConfigItem{Name: filepath.Base(f), Path: abs})
+			}
+		}
+	} else {
+		// 1. Scan current working directory
+		files, _ := filepath.Glob("*.ovpn")
+		for _, f := range files {
+			abs, err := filepath.Abs(f)
+			if err == nil {
+				configs = append(configs, ConfigItem{Name: filepath.Base(f), Path: abs})
+			}
+		}
+
+		// Get actual home directory (resolving SUDO_USER if run under sudo)
+		var homeDir string
+		if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
+			homeDir = filepath.Join("/home", sudoUser)
+		} else {
+			var err error
+			homeDir, err = os.UserHomeDir()
+			if err != nil {
+				homeDir = ""
+			}
+		}
+
+		if homeDir != "" {
+			// 2. Scan user's home directory
+			homeFiles, _ := filepath.Glob(filepath.Join(homeDir, "*.ovpn"))
+			for _, f := range homeFiles {
+				configs = append(configs, ConfigItem{Name: filepath.Base(f), Path: f})
+			}
+
+			// 3. Scan user's Downloads directory
+			downloadFiles, _ := filepath.Glob(filepath.Join(homeDir, "Downloads", "*.ovpn"))
+			for _, f := range downloadFiles {
+				configs = append(configs, ConfigItem{Name: filepath.Base(f), Path: f})
+			}
 		}
 	}
 
@@ -589,7 +629,7 @@ func parseLogLine(line string) {
 
 func fetchCurrentIP() (string, string) {
 	client := http.Client{Timeout: 3 * time.Second}
-	
+
 	// Query ip-api for both IP and city/country
 	resp, err := client.Get("http://ip-api.com/json/")
 	if err != nil {
@@ -661,7 +701,7 @@ func (lb *LogBroadcaster) Unregister(ch chan string) {
 func (lb *LogBroadcaster) Broadcast(line string) {
 	lb.Lock()
 	defer lb.Unlock()
-	
+
 	if len(lb.buffer) >= 200 {
 		lb.buffer = lb.buffer[1:]
 	}
